@@ -2,6 +2,7 @@ package com.example.aplicaciongetconcompose
 
 import android.app.Activity
 import android.content.Context
+
 import android.net.ConnectivityManager
 import android.util.Log
 import com.example.aplicaciongetconcompose.ui.theme.Constants.REQUEST_ACCOUNT_PICKER
@@ -15,7 +16,9 @@ import com.google.api.client.json.jackson2.JacksonFactory
 import com.google.api.client.util.DateTime
 import com.google.api.client.util.ExponentialBackOff
 import com.google.api.services.calendar.Calendar
+import com.google.api.services.calendar.model.Event
 import com.google.api.services.calendar.CalendarScopes
+import com.google.api.services.calendar.model.EventDateTime
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -45,7 +48,7 @@ class CalendarioLogic(private val context: Context) {
         )
             .setApplicationName("GetEventCalendar")
             .build()
-        mCredential!!.selectedAccountName = "cor22982@uvg.edu.gt"
+      mCredential!!.selectedAccountName = "cor22982@uvg.edu.gt"
     }
 
 
@@ -93,7 +96,8 @@ class CalendarioLogic(private val context: Context) {
         } else {
             // Ejecuta la operación en un hilo secundario
             CoroutineScope(Dispatchers.IO).launch {
-                getDataFromCalendar()
+        //        getDataFromCalendar()
+                setDataFromCalendar()
             }
         }
     }
@@ -119,6 +123,39 @@ class CalendarioLogic(private val context: Context) {
         val connMgr = activity.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
         val networkInfo = connMgr.activeNetworkInfo
         return networkInfo?.isConnected == true
+    }
+
+    fun setDataFromCalendar(){
+
+        try {
+            Log.d("Google proc", "se comenzó")
+            val event = Event()
+                .setSummary("EVENTO NUEVO")
+                .setLocation("Ciudad de Guatemala, Edificio CIT Universidad del Valle")
+                .setDescription("Esta es una prueba")
+            val startDateTime = DateTime("2023-11-06T13:00:00-06:00")
+            val start = EventDateTime()
+                .setDateTime(startDateTime)
+                .setTimeZone("America/Guatemala")
+            event.start = start
+            val endDateTime = DateTime("2023-11-06T16:00:00-06:00")
+            val end = EventDateTime()
+                .setDateTime(endDateTime)
+                .setTimeZone("America/Guatemala")
+            event.end = end
+
+            val insertado = mService!!.events().insert("mcorderoeb5bm2019071@gmail.com",event).execute()
+            Log.d("Google proc", "Evento insertado: ${insertado.htmlLink}")
+
+        } catch (e: UserRecoverableAuthIOException) {
+
+            Log.d("Google error 2", e.message.toString())
+            Log.d("Google error 2", e.stackTraceToString())
+        } catch (e: IOException) {
+            Log.d("Google error", e.message.toString())
+            Log.d("Google error", e.stackTraceToString())
+
+        }
     }
 
 }
